@@ -138,18 +138,26 @@ function pararAlerta() {
 }
 
 async function verificarNovasOcorrencias() {
-  const res = await fetch("http://localhost:3000/ocorrencias");
+  const baseUrl = location.hostname.includes("localhost")
+    ? "http://localhost:3000"
+    : "https://ocorrenciaservidor.onrender.com";
+
+  const res = await fetch(`${baseUrl}/ocorrencias`);
   const data = await res.json();
-  const novaMaisRecente = data[0]?._id;
+
+  const novaMaisRecente = data[0]?._id; // 👈 primeiro definimos
 
   if (ultimaOcorrenciaID && novaMaisRecente !== ultimaOcorrenciaID) {
-    iniciarAlertaNovaOcorrencia();
+    iniciarAlertaNovaOcorrencia(); // 👈 depois comparamos
   }
 
-  ultimaOcorrenciaID = novaMaisRecente;
-  todas = data;
+ ultimaOcorrenciaID = novaMaisRecente;
+window.todas = data;
+if (typeof mostrarOcorrencias === "function") {
   mostrarOcorrencias(data);
 }
+
+  
 
 // Para parar o alerta ao clicar em qualquer parte da tela
 window.addEventListener("click", pararAlerta);
@@ -168,6 +176,8 @@ verificarNovasOcorrencias();
 
     
   </script>
+
+  
   <!-- Botão escondido para habilitar áudio -->
   <button id="ativarSom" style="display:none;">Ativar Som</button>
   <img src="bicudo-2025.jpg" alt="Bicudo 2025" class="topo-img" />
@@ -292,8 +302,8 @@ verificarNovasOcorrencias();
   }
 
   const dados = { nomeAluno, serie, professor, assinatura, descricao, ocorrencias };
+const response = await fetch(`${baseUrl}/ocorrencias`, {
 
-  const response = await fetch('http://localhost:3000/ocorrencias', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dados)
