@@ -2,29 +2,24 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const Ocorrencia = require('./Ocorrencia'); // modelo corrigido
+const Ocorrencia = require('./Ocorrencia'); // ← Caminho corrigido
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Compatível com Render
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // servir HTML, CSS e JS
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexão com MongoDB Atlas
-mongoose.connect(
-  'mongodb+srv://bicudo2025:bicudo2025@clusterbicudo.lmsenry.mongodb.net/ocorrencia?retryWrites=true&w=majority&appName=Clusterbicudo',
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
+mongoose.connect('mongodb+srv://bicudo2025:bicudo2025@clusterbicudo.lmsenry.mongodb.net/ocorrencia?retryWrites=true&w=majority&appName=Clusterbicudo');
 
-// Confirmação de conexão com Mongo
+// Log de conexão bem-sucedida
 mongoose.connection.on('connected', () => {
   console.log('📡 Conectado no MongoDB!');
   console.log('🧠 Banco usado:', mongoose.connection.name);
 });
 
-// Rota para registrar ocorrência
+// Rota para registrar uma nova ocorrência
 app.post('/ocorrencias', async (req, res) => {
   try {
     const { nomeAluno, serie, professor, assinatura, descricao, ocorrencias } = req.body;
@@ -49,7 +44,7 @@ app.post('/ocorrencias', async (req, res) => {
   }
 });
 
-// Rota para listar todas ocorrências
+// Rota para listar ocorrências ordenadas por data decrescente
 app.get('/ocorrencias', async (req, res) => {
   try {
     const lista = await Ocorrencia.find().sort({ dataHora: -1 });
@@ -60,7 +55,7 @@ app.get('/ocorrencias', async (req, res) => {
   }
 });
 
-// Inicia servidor na porta certa
-app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+// Inicia o servidor na porta 3000
+app.listen(3000, () => {
+  console.log('✅ Servidor rodando em http://localhost:3000');
 });
