@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-
   <title>Registrar Ocorrência</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#003c70" />
@@ -114,61 +112,73 @@
   </style>
 </head>
 <body>
+   <audio id="alertaSom" src="notificacao.mp3" preload="auto"></audio>
+  <button id="ativarSom" onclick="document.getElementById('alertaSom').play()" style="display:none;">Ativar Som</button>
+
   <script>
+  const baseUrl = location.hostname.includes("localhost")
+    ? "http://localhost:3000"
+    : "https://ocorrenciaservidor.onrender.com"; // Altere para sua URL se necessário
 
-      let ultimaOcorrenciaID = null;
-let piscando = false;
-let alertaInterval = null;
-let originalTitle = document.title;
+  let ultimaOcorrenciaID = null;
+  let piscando = false;
+  let alertaInterval = null;
+  let originalTitle = document.title;
 
-function iniciarAlertaNovaOcorrencia() {
-  if (piscando) return;
-  piscando = true;
-  let estado = false;
-  alertaInterval = setInterval(() => {
-    document.title = estado ? "🟥 NOVA OCORRÊNCIA 🟨" : "⚠️ ATENÇÃO!";
-    estado = !estado;
-  }, 700);
-  document.getElementById("alertaSom").play();
-}
-
-function pararAlerta() {
-  clearInterval(alertaInterval);
-  document.title = originalTitle;
-  piscando = false;
-}
-
-async function verificarNovasOcorrencias() {
-  const res = await fetch("http://localhost:3000/ocorrencias");
-  const data = await res.json();
-  const novaMaisRecente = data[0]?._id;
-
-  if (ultimaOcorrenciaID && novaMaisRecente !== ultimaOcorrenciaID) {
-    iniciarAlertaNovaOcorrencia();
+  function iniciarAlertaNovaOcorrencia() {
+    if (piscando) return;
+    piscando = true;
+    let estado = false;
+    alertaInterval = setInterval(() => {
+      document.title = estado ? "🟥 NOVA OCORRÊNCIA 🟨" : "⚠️ ATENÇÃO!";
+      estado = !estado;
+    }, 700);
+    document.getElementById("alertaSom").play();
   }
 
-  ultimaOcorrenciaID = novaMaisRecente;
-  todas = data;
-  mostrarOcorrencias(data);
-}
+  function pararAlerta() {
+    clearInterval(alertaInterval);
+    document.title = originalTitle;
+    piscando = false;
+  }
 
-// Para parar o alerta ao clicar em qualquer parte da tela
-window.addEventListener("click", pararAlerta);
+  async function verificarNovasOcorrencias() {
+    const res = await fetch(`${baseUrl}/ocorrencias`);
+    const data = await res.json();
+    const novaMaisRecente = data[0]?._id;
 
-// Recarrega a cada 5 segundos
-setInterval(verificarNovasOcorrencias, 5000);
-
-// Primeira carga
-verificarNovasOcorrencias();
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log("✅ Service Worker registrado!"))
-        .catch(err => console.error("❌ Falha no registro:", err));
+    if (ultimaOcorrenciaID && novaMaisRecente !== ultimaOcorrenciaID) {
+      iniciarAlertaNovaOcorrencia();
     }
 
-    
-  </script>
+    ultimaOcorrenciaID = novaMaisRecente;
+
+    // Chamada opcional: se tiver função para mostrar as ocorrências na tela
+    if (typeof mostrarOcorrencias === "function") {
+      mostrarOcorrencias(data);
+    }
+  }
+
+  // Evento para parar alerta
+  window.addEventListener("click", pararAlerta);
+
+  // Intervalo de verificação
+  setInterval(verificarNovasOcorrencias, 5000);
+
+  // Primeira verificação
+  window.onload = () => {
+    document.getElementById('ativarSom').click();
+    verificarNovasOcorrencias();
+  };
+
+  // PWA service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log("✅ Service Worker registrado!"))
+      .catch(err => console.error("❌ Falha no registro:", err));
+  }
+</script>
+
   <!-- Botão escondido para habilitar áudio -->
   <button id="ativarSom" style="display:none;">Ativar Som</button>
   <img src="bicudo-2025.jpg" alt="Bicudo 2025" class="topo-img" />
@@ -294,11 +304,11 @@ verificarNovasOcorrencias();
 
   const dados = { nomeAluno, serie, professor, assinatura, descricao, ocorrencias };
 
-  const response = await fetch('http://localhost:3000/ocorrencias', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dados)
-  });
+  const response = await fetch(`${baseUrl}/ocorrencias`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(dados)
+});
 
   if (response.ok) {
     alert("Ocorrência registrada com sucesso!");

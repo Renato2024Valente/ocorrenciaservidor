@@ -7,9 +7,10 @@ const OcorrenciaSchema = new mongoose.Schema({
   assinatura: String,
   descricao: String,
   ocorrencias: [String],
-  dataHora: Date
+  dataHora: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// força o nome da coleção para 'ocorrencia'
-module.exports = mongoose.model('Ocorrencia', OcorrenciaSchema, 'ocorrencia');
-
+module.exports = mongoose.model('Ocorrencia', OcorrenciaSchema);
